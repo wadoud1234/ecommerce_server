@@ -2,12 +2,13 @@ import { migrate } from "drizzle-orm/postgres-js/migrator"
 import postgres from "postgres"
 import { drizzle } from "drizzle-orm/postgres-js"
 import * as schema from "./src/infra/db/schema"
-
+import { config } from "dotenv"
+config();
 (
     async () => {
         console.log("HeLLO");
 
-        const queryClient = postgres('postgresql://wadoud1234:I7berLv9EfOg@ep-shiny-wave-a2y8q9fd.eu-central-1.aws.neon.tech/ecommerce?sslmode=require', { max: 1 })
+        const queryClient = postgres(process.env.DATABASE_URL as string, { max: 1 })
         const db = drizzle(queryClient, { schema })
         try {
             await migrate(db, {
