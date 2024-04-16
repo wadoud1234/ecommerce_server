@@ -27,7 +27,7 @@ export class AuthController {
     const tokens = await this.authService.loginUser(dto)
     res.cookie("at", tokens.at, { httpOnly: true })
     res.cookie("rt", tokens.rt, { httpOnly: true })
-    return res;
+    return { message: "Success" }
   }
 
   @Patch("forget-password")

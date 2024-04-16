@@ -5,43 +5,22 @@
     {
       "idx": 0,
       "version": "5",
-      "when": 1712959142809,
-      "tag": "0000_green_swarm",
+      "when": 1713048212161,
+      "tag": "0000_slimy_boomer",
       "breakpoints": true
     },
     {
       "idx": 1,
       "version": "5",
-      "when": 1712959260831,
-      "tag": "0001_stale_hiroim",
+      "when": 1713289368222,
+      "tag": "0001_big_goblin_queen",
       "breakpoints": true
     },
     {
       "idx": 2,
       "version": "5",
-      "when": 1712959308991,
-      "tag": "0002_faithful_payback",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "5",
-      "when": 1712959556175,
-      "tag": "0003_wandering_the_santerians",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "5",
-      "when": 1712959573450,
-      "tag": "0004_empty_leech",
-      "breakpoints": true
-    },
-    {
-      "idx": 5,
-      "version": "5",
-      "when": 1712966668417,
-      "tag": "0005_panoramic_bill_hollister",
+      "when": 1713292616768,
+      "tag": "0002_curvy_ben_parker",
       "breakpoints": true
     }
   ]

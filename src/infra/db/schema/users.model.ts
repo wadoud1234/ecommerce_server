@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm"
-import { pgEnum, pgTable, varchar } from "drizzle-orm/pg-core"
+import { pgEnum, pgTable, text, varchar } from "drizzle-orm/pg-core"
 import { ordersModel } from "./orders.model"
 import { storesModel } from "./stores.model"
 import { cartModel } from "./cart.model"
@@ -13,6 +13,7 @@ export const UsersRoles = pgEnum("roles", ["admin", "user"])
 export const usersModel = pgTable("users", {
     id: varchar("id", { length: 50 }).primaryKey().$defaultFn(generateCUID),
     name: varchar("name", { length: 255 }).notNull(),
+    slug: varchar("slug", { length: 255 }).notNull(),
     email: varchar("email", { length: 255 }).notNull().unique(),
     passwordHash: varchar("passwordHash", { length: 255 }).notNull(),
     role: UsersRoles("role").notNull().default("user"),

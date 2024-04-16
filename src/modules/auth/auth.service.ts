@@ -1,4 +1,4 @@
-import { BadRequestException, HttpException, Injectable, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, forwardRef, HttpException, Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { UsersRepository } from '../users/users.repository';
 import { LoginUserDto } from './dto/login-user.dto';
 import { RegisterUserDto } from './dto/register-user.dto';
@@ -10,7 +10,6 @@ import type { SuccessMessageResponseType } from 'src/types/responses.type';
 import { UserRegisteredEvent } from './events/user.registered..event';
 import { EventEmitter2 } from "@nestjs/event-emitter"
 import { PasswordService } from './password.service';
-import { authTokensModel } from 'src/infra/db/schema/authTokens.model';
 
 export interface IAuthService {
     loginUser(dto: LoginUserDto): Promise<{ at: string, rt: string }>,
@@ -24,26 +23,24 @@ export interface IAuthService {
 @Injectable()
 export class AuthService implements IAuthService {
     constructor(
-        private readonly usersRepository: UsersRepository,
-        private readonly eventEmitter: EventEmitter2,
+        @Inject(forwardRef(() => UsersRepository)) private readonly usersRepository: UsersRepository,
         private readonly passwordService: PasswordService,
     ) { }
 
 
-    async loginUser(dto: LoginUserDto): Promise<{ at: string, rt: string }> {
+    async loginUser(dto: LoginUserDto): Promise<{ at: string, rt: string } | any> {
         const { email, password } = dto
         const user = await this.usersRepository.getUserByEmail(email)
-        console.table(user);
 
-        if (!user?.email) throw new BadRequestException("Email or password incorrect")
+        if (!user?.email) return new BadRequestException("Email or password incorrect")
 
         const passwordHashVerified = await this.passwordService.verifyHashedPassword(password, user.passwordHash)
-        if (!passwordHashVerified) throw new BadRequestException("Email or password incorrect")
+        if (!passwordHashVerified) return new BadRequestException("Email or password incorrect")
 
         const token = await this.passwordService.signAuthUserTokens(user.id, user.email)
-        await this.updateRefreshTokenHash(token.rt, user.id)
-
-        return token
+        const something = await this.updateRefreshTokenHash(token.rt, user.id)
+        const { at, rt } = token
+        return { at, rt }
     }
 
     async registerUser(dto: RegisterUserDto): Promise<IUsersEntity> {
@@ -56,7 +53,7 @@ export class AuthService implements IAuthService {
         const user = await this.usersRepository.createUser({ name, email, passwordHash })
 
         const userRegisteredEvent = new UserRegisteredEvent(user.email, user.name)
-        this.eventEmitter.emit("user.registered", userRegisteredEvent)
+        // this.eventEmitter.emit("user.registered", userRegisteredEvent)
         return user
     }
 
@@ -101,10 +98,10 @@ export class AuthService implements IAuthService {
         return { success: true, message: "User didn't get disactivated yet , TODO" }
     }
 
-    async updateRefreshTokenHash(rt: string, id: string) {
+    async updateRefreshTokenHash(rt: string, id: string): Promise<boolean> {
         const hashedToken = await this.passwordService.hashPassword(rt)
         const updateToken = await this.usersRepository.updateUserAuthRefreshToken(hashedToken, id)
-        return updateToken;
+        return true;
     }
 
     async logout(id: string) {

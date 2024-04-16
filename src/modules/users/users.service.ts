@@ -13,7 +13,12 @@ export interface IUsersService {
 
 @Injectable()
 export class UsersService implements IUsersService {
+
     constructor(private readonly usersRepository: UsersRepository) { }
+
+    async getUserStores(id: string) {
+        return await this.usersRepository.getUserStores(id)
+    }
 
     async getUsers() {
         const users = await this.usersRepository.getUsers()

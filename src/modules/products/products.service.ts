@@ -1,26 +1,55 @@
 import { Injectable } from '@nestjs/common';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
+import { ProductsRepository } from './products.repository';
+import { runInThisContext } from 'vm';
+import { ProductEntity } from './entities/product.entity';
 
+type ResponseReturnType = {
+  id: string,
+  slug: string
+}
+
+interface IProductsService {
+  getProducts(query: SearchQuery): Promise<ProductEntity[]>
+  getProductById(id: string): Promise<ProductEntity | null>
+  getProductBySlug(slug: string): Promise<ProductEntity | null>
+  createProduct(dto: CreateProductDto): Promise<ResponseReturnType>
+  updateProduct(id: string, dto: UpdateProductDto): Promise<ResponseReturnType>
+  deleteProduct(id: string): Promise<any>
+}
+export type SearchQuery = {
+  limit: number,
+  page: number,
+  // sort:'asc'|"dsc"
+  keyword: string
+}
 @Injectable()
-export class ProductsService {
-  create(createProductDto: CreateProductDto) {
-    return 'This action adds a new product';
+export class ProductsService implements IProductsService {
+  constructor(private readonly productsRepository: ProductsRepository) { }
+
+  async getProducts(query: SearchQuery): Promise<ProductEntity[]> {
+    return await this.productsRepository.getProducts(query)
   }
 
-  findAll() {
-    return `This action returns all products`;
+  async getProductById(id: string): Promise<ProductEntity | null> {
+    return await this.productsRepository.getProductById(id)
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} product`;
+  async getProductBySlug(slug: string): Promise<ProductEntity | null> {
+    return this.productsRepository.getProductBySlug(slug)
   }
 
-  update(id: number, updateProductDto: UpdateProductDto) {
-    return `This action updates a #${id} product`;
+  async createProduct(dto: CreateProductDto) {
+    return await this.productsRepository.createProduct(dto)
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} product`;
+  async updateProduct(id: string, dto: UpdateProductDto): Promise<ResponseReturnType> {
+    return await this.productsRepository.updateProduct(id, dto)
   }
+
+  async deleteProduct(id: string): Promise<any> {
+    return await this.productsRepository.deleteProduct(id)
+  }
+
 }

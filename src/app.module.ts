@@ -14,8 +14,12 @@ import * as schema from './infra/db/schema';
 import { DB_Provider } from './infra/db';
 import { AuthModule } from './modules/auth/auth.module';
 import { EventEmitterModule } from '@nestjs/event-emitter';
+import { StoresModule } from './modules/stores/stores.module';
+import { CategoryModule } from './modules/category/category.module';
 
-
+import { CacheModule } from '@nestjs/cache-manager';
+import * as redisStore from 'cache-manager-redis-store';
+import { RedisClientOptions } from "redis"
 
 @Module({
   imports: [
@@ -27,6 +31,10 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
     EmailModule,
     ConfigModule.forRoot(),
     EventEmitterModule.forRoot(),
+    AuthModule,
+    StoresModule,
+    CategoryModule,
+
     DrizzlePostgresModule.registerAsync({
       tag: DB_Provider,
       useFactory() {
@@ -38,7 +46,14 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
         };
       },
     }),
-    AuthModule,
+
+    // CacheModule.register<RedisClientOptions>({
+    //   store: redisStore,
+    //   host: "localhost",
+    //   port: 6379,
+    //   isGlobal: true
+    // }),
+
   ],
   controllers: [AppController],
   providers: [AppService, EmailService],

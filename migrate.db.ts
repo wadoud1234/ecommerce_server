@@ -6,20 +6,16 @@ import { config } from "dotenv"
 config();
 (
     async () => {
-        console.log("HeLLO");
+        const db_link = process?.env.DATABASE_URL as string
 
-        const queryClient = postgres(process.env.DATABASE_URL as string, { max: 1 })
+        const queryClient = postgres(db_link, { max: 1 })
         const db = drizzle(queryClient, { schema })
         try {
             await migrate(db, {
                 migrationsFolder: "./src/infra/db/migrations",
             })
-            console.log("SUCCESS")
-        } catch (e) {
-            console.log("ERROR")
-            console.error(e);
+        } catch (e: any) {
         } finally {
-            console.log("FINISHED");
             process.exit(0)
 
         }

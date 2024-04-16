@@ -1,34 +1,51 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
-import { ProductsService } from './products.service';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
+import { ProductsService, SearchQuery } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
+import { ProductEntity } from './entities/product.entity';
+
+interface IProductsController {
+  getProducts(query: SearchQuery): Promise<ProductEntity[]>
+  getProductById(id: string): Promise<ProductEntity | null>
+  getProductBySlug(slug: string): Promise<ProductEntity | null>
+  createProduct(dto: CreateProductDto): Promise<{ id: string, slug: string }>
+  updateProduct(id: string, dto: UpdateProductDto): Promise<{ id: string, slug: string }>
+  deleteProduct(id: string): Promise<any>
+}
 
 @Controller('products')
-export class ProductsController {
-  constructor(private readonly productsService: ProductsService) {}
-
-  @Post()
-  create(@Body() createProductDto: CreateProductDto) {
-    return this.productsService.create(createProductDto);
-  }
+export class ProductsController implements IProductsController {
+  constructor(private readonly productsService: ProductsService) { }
 
   @Get()
-  findAll() {
-    return this.productsService.findAll();
+  async getProducts(@Query() query: SearchQuery): Promise<ProductEntity[]> {
+    return await this.productsService.getProducts(query)
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.productsService.findOne(+id);
+  @Get(":id")
+  async getProductById(@Param("id") id: string): Promise<ProductEntity | null> {
+    return await this.productsService.getProductById(id)
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateProductDto: UpdateProductDto) {
-    return this.productsService.update(+id, updateProductDto);
+  @Get("getBySlug/:slug")
+  async getProductBySlug(@Param("slug") slug: string): Promise<ProductEntity | null> {
+    return await this.productsService.getProductBySlug(slug)
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.productsService.remove(+id);
+  @Post()
+  async createProduct(@Body() dto: CreateProductDto): Promise<{ id: string, slug: string }> {
+    return await this.productsService.createProduct(dto)
   }
+
+  @Patch(":id")
+  async updateProduct(@Param("id") id: string, @Body() dto: UpdateProductDto): Promise<{ id: string, slug: string }> {
+    return await this.productsService.updateProduct(id, dto)
+  }
+
+  @Delete(":id")
+  async deleteProduct(@Param("id") id: string): Promise<any> {
+    return await this.productsService.deleteProduct(id)
+  }
+
+
 }

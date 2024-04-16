@@ -29,6 +29,15 @@ export class UsersController implements IUsersController {
     return await this.usersService.getProfile(id)
   }
 
+  @AtJwtAuth()
+  @Get("stores")
+  async getUserStores(@Req() req: any) {
+    const { user } = req
+    const id = user.id as string
+    if (!id) return new UnauthorizedException()
+    return this.usersService.getUserStores(id)
+  }
+  
   @Get(':id')
   @Validation(getUserByIdDto)
   async getUserById(dto: GetUserByIdDto) {

@@ -12,7 +12,7 @@ import { RtJwtStrategy } from './strategy/rt.jwt.strategy';
     UsersModule,
     JwtModule.register({
       secret: process.env.JWT_SECRET,
-    })
+    }),
   ],
   controllers: [AuthController],
   providers: [

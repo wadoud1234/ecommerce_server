@@ -1,1 +1,0 @@
-ALTER TABLE "cart" DROP COLUMN IF EXISTS "userId";

@@ -1,11 +1,12 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { eq } from 'drizzle-orm';
 import { DB_Provider, type DB_Type } from 'src/infra/db';
-import { usersModel } from 'src/infra/db/schema';
+import { storesModel, usersModel } from 'src/infra/db/schema';
 import type { CreateUserDto } from './dto/create-user.dto';
 import type { IUsersEntity } from './entities/users.entity';
 import type { UpdateUserDto } from './dto/update-user.dto';
 import { authTokensModel } from 'src/infra/db/schema/authTokens.model';
+import { generateSlug } from 'src/common/helpers/generateSlug.helper';
 
 export interface IUsersRepository {
     getUsers(): Promise<IUsersEntity[]>,
@@ -18,7 +19,15 @@ export interface IUsersRepository {
 
 @Injectable()
 export class UsersRepository implements IUsersRepository {
+
     constructor(@Inject(DB_Provider) private db: DB_Type) { }
+
+    async getUserStores(id: string) {
+        const stores = await this.db.query.storesModel.findMany({
+            where: eq(storesModel.userId, id),
+        })
+        return stores;
+    }
 
     async getUsers() {
         const users = await this.db.query.usersModel.findMany({
@@ -54,7 +63,10 @@ export class UsersRepository implements IUsersRepository {
 
     async createUser({ name, email, passwordHash }: CreateUserDto) {
         const newUser = await this.db.insert(usersModel).values({
-            name, email, passwordHash
+            name,
+            email,
+            passwordHash,
+            slug: generateSlug(name)
         }).returning().then(data => data?.[0])
         return newUser
     }
@@ -69,14 +81,28 @@ export class UsersRepository implements IUsersRepository {
         return resp
     }
 
-    async updateUserAuthRefreshToken(rt: string, id: string) {
+    async updateUserAuthRefreshToken(rt: string, id: string): Promise<boolean> {
         try {
+
+            // const IsUserAuthTokenExist = await this.db.query.authTokensModel.findFirst({
+            //     where: eq(authTokensModel.userId, id),
+            //     columns: { id: true, userId: true }
+            // })
+            // if (IsUserAuthTokenExist) {
             const updated = await this.db.update(authTokensModel).set({
                 RefreshToken: rt
-            }).where(eq(authTokensModel.userId, id))
-            console.log({ updated });
+            }).where(eq(authTokensModel.userId, id)).returning().then(data => data?.[0])
+            return true
+            // }
+            // else {
+            //     const userAuthToken = await this.db.insert(authTokensModel).values({
+            //         RefreshToken: rt,
+            //         userId: id
+            //     }).returning().then(data => data?.[0])
+            //     return true
+            // }
+
         } catch (err) {
-            console.log({ err });
             return false
         }
         return true
