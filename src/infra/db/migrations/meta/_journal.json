@@ -1,0 +1,27 @@
+{
+  "version": "5",
+  "dialect": "pg",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "5",
+      "when": 1713724436020,
+      "tag": "0000_blue_living_mummy",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "5",
+      "when": 1714047834856,
+      "tag": "0001_sweet_sue_storm",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1714087137963,
+      "tag": "0002_colorful_bullseye",
+      "breakpoints": true
+    }
+  ]
+}
