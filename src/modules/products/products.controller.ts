@@ -1,15 +1,17 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, Req, BadRequestException } from '@nestjs/common';
 import { ProductsService, SearchQuery } from './products.service';
-import { CreateProductDto } from './dto/create-product.dto';
-import { UpdateProductDto } from './dto/update-product.dto';
+import { createProductDto, CreateProductDto } from './dto/create-product.dto';
+import { updateProductDto, UpdateProductDto } from './dto/update-product.dto';
 import { ProductEntity } from './entities/product.entity';
 import { ApiTags } from '@nestjs/swagger';
+import { AtJwtAuth } from '../auth/decorators/at.jwt.guard.decorator';
+import { Validation } from 'src/common/decorators/validation.decorator';
 
 interface IProductsController {
   getProducts(query: SearchQuery): Promise<ProductEntity[]>
   getProductById(id: string): Promise<ProductEntity | null>
   getProductBySlug(slug: string): Promise<ProductEntity | null>
-  createProduct(dto: CreateProductDto): Promise<{ id: string, slug: string }>
+  createProduct(dto: CreateProductDto, req: any): Promise<{ id: string, slug: string }>
   updateProduct(id: string, dto: UpdateProductDto): Promise<{ id: string, slug: string }>
   deleteProduct(id: string): Promise<any>
 }
@@ -34,12 +36,18 @@ export class ProductsController implements IProductsController {
     return await this.productsService.getProductBySlug(slug)
   }
 
+  @AtJwtAuth()
   @Post()
-  async createProduct(@Body() dto: CreateProductDto): Promise<{ id: string, slug: string }> {
+  @Validation(createProductDto)
+  async createProduct(@Body() dto: CreateProductDto, @Req() req: any): Promise<{ id: string, slug: string }> {
+    console.log({ msg: "Create product" });
+    const user = req.user as { id: string };
+    if (!user || !user?.id) throw new BadRequestException("You must be authenticated to create a product")
     return await this.productsService.createProduct(dto)
   }
 
   @Patch(":id")
+  @Validation(updateProductDto)
   async updateProduct(@Param("id") id: string, @Body() dto: UpdateProductDto): Promise<{ id: string, slug: string }> {
     return await this.productsService.updateProduct(id, dto)
   }

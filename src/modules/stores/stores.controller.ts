@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, Req } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, Req, UsePipes, BadRequestException } from '@nestjs/common';
 import { StoresService } from './stores.service';
 import { createStoreDto, CreateStoreDto } from './dto/create-store.dto';
 import { updateStoreDto, UpdateStoreDto } from './dto/update-store.dto';
@@ -6,6 +6,8 @@ import { Validation } from 'src/common/decorators/validation.decorator';
 import { ApiTags } from '@nestjs/swagger';
 import { AtJwtAuthGuard } from '../auth/guards/at.jwt.guard';
 import { AtJwtAuth } from '../auth/decorators/at.jwt.guard.decorator';
+import { UpdateStoreStatusDto, updateStoreStatusDto } from './dto/update-store-status.dto';
+import { ZodValidationPipe } from 'nestjs-zod';
 
 @ApiTags("Stores")
 @Controller('stores')
@@ -46,15 +48,36 @@ export class StoresController {
     return await this.storesService.createStore({ ...dto, userId: user.id })
   }
 
-  @Patch(":id")
-  @Validation(updateStoreDto)
+  @Patch(":slug")
+  // @Validation(updateStoreDto)
   async updateStore(
-    @Param("id") id: string,
+    @Param("slug") slug: string,
     @Body() dto: UpdateStoreDto
   ) {
-    return await this.storesService.updateStore(id, dto)
+    console.log("DTO", { dto })
+    const result = updateStoreDto.safeParse(dto)
+    console.log({ result });
+
+    if (!result.success) {
+      return new BadRequestException(result.error)
+    }
+
+    return await this.storesService.updateStore(slug, dto)
   }
 
+
+  @Patch(":storeSlug/update-status")
+  @AtJwtAuth()
+  async updateStatus(@Body() dto: UpdateStoreStatusDto, @Param("storeSlug") storeSlug: string) {
+    const { isPublic } = dto
+    const result = updateStoreStatusDto.safeParse(dto)
+    if (!result.success) {
+      return new BadRequestException(result.error)
+    }
+    console.log({ result });
+
+    return await this.storesService.updateStoreStatus({ isPublic, storeSlug })
+  }
   @Patch("disactivate/:id")
   async disactivateStore(@Param("id") id: string) {
     return await this.storesService.disactivateStore(id)

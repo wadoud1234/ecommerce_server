@@ -9,7 +9,7 @@ import { DisActivateUserDto, disActivateUserDto } from './dto/disactivate-user.d
 import type { SuccessMessageResponseType } from 'src/types/responses.type';
 import { RtJwtAuth } from './decorators/rt.jwt.guard.decorator';
 import { AtJwtAuth } from './decorators/at.jwt.guard.decorator';
-import { Response } from 'express';
+import { Request, Response } from 'express';
 import { ApiBody, ApiTags } from '@nestjs/swagger';
 
 @ApiTags("Auth")
@@ -26,13 +26,8 @@ export class AuthController {
 
   @Post("login")
   @Validation(loginUserDto)
-  async loginUser(@Body() dto: LoginUserDto, @Res({ passthrough: true }) res: Response) {
-    const tokens = await this.authService.loginUser(dto)
-    this.logger.log("LOGIN")
-    console.log({ tokens })
-    res.setHeader("at", tokens.at)
-    res.setHeader("rt", tokens.rt)
-    return { message: "Login Success" }
+  async loginUser(@Body() dto: LoginUserDto) {
+    return await this.authService.loginUser(dto)
   }
 
   @Patch("forget-password")
@@ -56,13 +51,16 @@ export class AuthController {
   @RtJwtAuth()
   @Get("refresh")
   async refresh(
-    @Req() req: { rt: string | null, id: string },
+    @Req() req: { rt: string, id: string },
     @Res({ passthrough: true }) res: any
   ) {
+    // const headers = req.headers.authorization
+    console.log("REFRESH")
     const { rt, id } = req
-    if (!rt) throw new UnauthorizedException()
+    console.log({ rt, id })
+    // if (!rt) throw new UnauthorizedException()
 
-    const tokens = await this.authService.refreshAccessToken(id, rt)
+    return await this.authService.refreshAccessToken(id, rt)
 
     // res.cookie('at', tokens.at, {
     //   httpOnly: true,
@@ -76,7 +74,6 @@ export class AuthController {
     //   sameSite: 'lax',
     //   expires: new Date(Date.now() + 1 * 24 * 60 * 1000),
     // })
-    return { status: 200 }
   }
 
   @AtJwtAuth()

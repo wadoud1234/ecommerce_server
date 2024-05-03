@@ -71,17 +71,25 @@ export class StoresRepository {
         return { id: newStore[0].id }
     }
 
-    async updateStore(id: string, name: string) {
-
+    async updateStore(slug: string, dto: {
+        name: string,
+        imageUrl: string,
+        isPublic: boolean,
+        description: string
+    }) {
+        const { name, isPublic, imageUrl, description } = dto
         const updatedStore = await this.db.update(storesModel)
             .set({
                 storeName: name,
-                slug: generateSlug(name)
+                slug: generateSlug(name),
+                image: imageUrl,
+                description,
+                public: isPublic
             })
-            .where(eq(storesModel.id, id))
-            .returning({ id: storesModel.id })
+            .where(eq(storesModel.slug, slug))
+            .returning({ id: storesModel.id, slug: storesModel.slug })
 
-        return { id: updatedStore[0].id }
+        return { success: true, id: updatedStore[0].id, slug: updatedStore[0].slug }
     }
 
     async getStoreWithProducts(id: string) {
@@ -107,4 +115,11 @@ export class StoresRepository {
         return disactivated
     }
 
+    async updateStoreStatus({ isPublic, storeSlug }: { isPublic: boolean, storeSlug: string }) {
+        const updated = await this.db.update(storesModel).set({ public: isPublic })
+            .where(eq(storesModel.slug, storeSlug))
+
+        console.log({ storeSlug, isPublic, updated })
+        return true
+    }
 }

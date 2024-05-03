@@ -39,12 +39,16 @@ export class StoresService {
     return await this.storesRepository.getStoreBySlug(slug)
   }
 
-  async updateStore(id: string, dto: UpdateStoreDto) {
-    const { name } = dto
-    return this.storesRepository.updateStore(id, name)
+  async updateStore(slug: string, dto: UpdateStoreDto) {
+    return this.storesRepository.updateStore(slug, dto)
   }
 
   async disactivateStore(id: string) {
     return await this.storesRepository.disactivateStore(id)
+  }
+
+  async updateStoreStatus({ isPublic, storeSlug }: { isPublic: boolean, storeSlug: string }) {
+
+    return await this.storesRepository.updateStoreStatus({ isPublic, storeSlug })
   }
 }

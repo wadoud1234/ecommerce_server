@@ -9,7 +9,7 @@ import { ApiTags } from '@nestjs/swagger';
 export interface IUsersController {
   getUsers(): Promise<IUsersEntity[]>,
   getUserById(dto: GetUserByIdDto): Promise<IUsersEntity | null>,
-  getCurrentUser(req: any): Promise<IUsersEntity | null>,
+  getCurrentUser(req: any): Promise<any>,
 }
 
 @ApiTags("Users")
@@ -36,6 +36,8 @@ export class UsersController implements IUsersController {
   async getUserStores(@Req() req: any) {
     const { user } = req
     const id = user.id as string
+    console.log({ id });
+
     if (!id) return new UnauthorizedException()
     return this.usersService.getUserStores(id)
   }

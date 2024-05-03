@@ -7,7 +7,7 @@ import type { GetUserByIdDto } from './dto/get-user.dto';
 export interface IUsersService {
     getUsers(): Promise<IUsersEntity[]>,
     getUserById(dto: GetUserByIdDto): Promise<IUsersEntity | null>,
-    getCurrentUser(id: string): Promise<IUsersEntity>,
+    getCurrentUser(id: string): Promise<{ id: string, name: string, email: string, image: string }>,
 }
 
 
@@ -32,7 +32,7 @@ export class UsersService implements IUsersService {
         return user
     }
 
-    async getCurrentUser(id: string): Promise<IUsersEntity> {
+    async getCurrentUser(id: string) {
         const user = await this.usersRepository.getCurrentUser(id)
         if (!user?.email) throw new Error("User not found")
         return user

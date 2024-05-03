@@ -27,5 +27,19 @@ services:
     networks:
       - app-network
 
+  session_pg:
+    image: 'postgres:16'
+    ports:
+      - '6000:6000'
+    environment:
+      - POSTGRES_PASSWORD=session_db
+      - POSTGRES_DB=session_db
+      - POSTGRES_USER=session_db
+    volumes:
+      - ./data/session_postgres:/var/lib/postgresql/session_db/data
+    restart: always
+    networks:
+      - app-network
+
 networks:
   app-network:

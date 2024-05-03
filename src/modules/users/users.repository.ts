@@ -41,13 +41,15 @@ export class UsersRepository implements IUsersRepository {
     }
 
     async getCurrentUser(id: string) {
-        const userWithStores = await this.db.query.usersModel.findFirst({
+        const user = await this.db.query.usersModel.findFirst({
             where: eq(usersModel.id, id),
-            with: {
-                stores: true,
+            columns: {
+                id: true, email: true, image: true, name: true,
             }
         })
-        return userWithStores
+        console.log({ user });
+
+        return user
     }
     async getUserById(id: string, isForProfile = false) {
         const user = await this.db.query.usersModel.findFirst({

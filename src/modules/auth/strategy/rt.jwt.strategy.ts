@@ -18,9 +18,12 @@ export class RtJwtStrategy extends PassportStrategy(Strategy, "rt-jwt") {
             passReqToCallback: true
         });
     }
+    //
 
     async validate(req: Request, payload: Payload) {
-        const token = req.headers.get("authorization")?.split(" ")[1]
+        const headers = req?.headers
+        const token = headers?.["authorization"]?.replace("Bearer ", "")
+        console.log({ headers, token })
         const { sub: id } = payload
         const user = await this.usersRepository.getUserById(id)
         if (!user?.email) return null

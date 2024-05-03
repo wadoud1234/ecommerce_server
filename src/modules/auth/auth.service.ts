@@ -10,6 +10,7 @@ import type { SuccessMessageResponseType } from 'src/types/responses.type';
 import { UserRegisteredEvent } from './events/user.registered..event';
 import { EventEmitter2 } from "@nestjs/event-emitter"
 import { PasswordService } from './password.service';
+import { AT_TOKEN_EXPIRES_IN } from './constants';
 
 export interface IAuthService {
     loginUser(dto: LoginUserDto): Promise<{ at: string, rt: string }>,
@@ -31,16 +32,31 @@ export class AuthService implements IAuthService {
     async loginUser(dto: LoginUserDto): Promise<{ at: string, rt: string } | any> {
         const { email, password } = dto
         const user = await this.usersRepository.getUserByEmail(email)
+        console.log({ email });
 
-        if (!user?.email) return new BadRequestException("Email or password incorrect")
+        if (!(user?.email)) throw new BadRequestException("Email or password incorrect")
 
         const passwordHashVerified = await this.passwordService.verifyHashedPassword(password, user.passwordHash)
         if (!passwordHashVerified) throw new BadRequestException("Email or password incorrect")
-
-        const token = await this.passwordService.signAuthUserTokens(user.id, user.email)
-        const something = await this.updateRefreshTokenHash(token.rt, user.id)
+        const { name, role, image, id } = user
+        const token = await this.passwordService.signAuthUserTokens({ email, name, role, id, image })
+        await this.updateRefreshTokenHash(token.rt, user.id)
         const { at, rt } = token
-        return { at, rt }
+        console.log("Success")
+        return {
+            user: {
+                name: user.name,
+                email: user.email,
+                id: user.id,
+                image: user.image,
+                role: user.role
+            },
+            backendTokens: {
+                accessToken: at,
+                refreshToken: rt,
+                expiresIn: new Date().setTime(new Date().getTime() + AT_TOKEN_EXPIRES_IN),
+            }
+        }
     }
 
     async registerUser(dto: RegisterUserDto): Promise<SuccessMessageResponseType> {
@@ -103,7 +119,7 @@ export class AuthService implements IAuthService {
 
     async updateRefreshTokenHash(rt: string, id: string): Promise<boolean> {
         const hashedToken = await this.passwordService.hashPassword(rt)
-        const updateToken = await this.usersRepository.updateUserAuthRefreshToken(hashedToken, id)
+        await this.usersRepository.updateUserAuthRefreshToken(hashedToken, id)
         return true;
     }
 
@@ -121,9 +137,10 @@ export class AuthService implements IAuthService {
         const rtHashVerified = await this.passwordService.verifyHashedPassword(rt, actualRefreshToken)
         if (rtHashVerified) throw new UnauthorizedException("Invalid Refresh Token")
 
-        const tokens = await this.passwordService.signAuthUserTokens(user.id, user.email)
+        const { name, email, role, image } = user
+        const tokens = await this.passwordService.signAuthUserTokens({ name, email, role, image, id })
         await this.updateRefreshTokenHash(tokens.rt, user.id)
 
-        return tokens
+        return { accessToken: tokens.at, refreshToken: tokens.rt, expiresIn: new Date().setTime(new Date().getTime() + AT_TOKEN_EXPIRES_IN) }
     }
 }
